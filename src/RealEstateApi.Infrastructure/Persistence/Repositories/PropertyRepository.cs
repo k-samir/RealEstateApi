@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RealEstateApi.Application.Interfaces;
 using RealEstateApi.Domain.Entities;
+using RealEstateApi.Domain.Enums;
 
 namespace RealEstateApi.Infrastructure.Persistence.Repositories;
 
@@ -38,7 +39,11 @@ public class PropertyRepository : IPropertyRepository
 
             if (!string.IsNullOrWhiteSpace(filter.Status))
             {
-                query = query.Where(p => p.Status == filter.Status);
+                // Parse string status to enum
+                if (Enum.TryParse<PropertyStatus>(filter.Status, ignoreCase: true, out var statusEnum))
+                {
+                    query = query.Where(p => p.Status == statusEnum);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter.SearchQuery))
@@ -79,8 +84,8 @@ public class PropertyRepository : IPropertyRepository
 
     public async Task<Property> CreateAsync(Property property, CancellationToken cancellationToken = default)
     {
-        property.CreatedAt = DateTime.UtcNow;
-        property.UpdatedAt = DateTime.UtcNow;
+        // Domain entity already sets CreatedAt/UpdatedAt via factory method
+        // EF Core will use field-based access configured in PropertyConfiguration
 
         _context.Properties.Add(property);
         await _context.SaveChangesAsync(cancellationToken);
@@ -90,7 +95,8 @@ public class PropertyRepository : IPropertyRepository
 
     public async Task<Property> UpdateAsync(Property property, CancellationToken cancellationToken = default)
     {
-        property.UpdatedAt = DateTime.UtcNow;
+        // Domain entity already updates UpdatedAt via domain methods
+        // EF Core will use field-based access configured in PropertyConfiguration
 
         _context.Properties.Update(property);
         await _context.SaveChangesAsync(cancellationToken);

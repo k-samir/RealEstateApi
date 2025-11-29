@@ -55,9 +55,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Register repositories (Dependency Injection)
+// Register repositories (Infrastructure - Adapters)
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+
+// Register application services (Use Cases)
+builder.Services.AddScoped<IPropertyService, RealEstateApi.Application.Services.PropertyService>();
 
 // Configure JWT Authentication from Better Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

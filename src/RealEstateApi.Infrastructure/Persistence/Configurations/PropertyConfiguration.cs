@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RealEstateApi.Domain.Entities;
+using RealEstateApi.Domain.Enums;
 using System.Text.Json;
 
 namespace RealEstateApi.Infrastructure.Persistence.Configurations;
@@ -14,6 +15,9 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
     public void Configure(EntityTypeBuilder<Property> builder)
     {
         builder.ToTable("property");
+
+        // Configure EF Core to use field-based access for private setters
+        builder.UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id)
@@ -47,7 +51,8 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(p => p.Status)
             .HasColumnName("status")
             .IsRequired()
-            .HasDefaultValue("draft");
+            .HasConversion<string>() // Store enum as string in database
+            .HasDefaultValue(PropertyStatus.Draft);
 
         builder.Property(p => p.CompletionDate)
             .HasColumnName("completion_date");
@@ -125,7 +130,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Relationships
+        // Relationships - use backing field for private setter
+        builder.Metadata.FindNavigation(nameof(Property.Units))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(p => p.Units)
             .WithOne(u => u.Property)
             .HasForeignKey(u => u.PropertyId)

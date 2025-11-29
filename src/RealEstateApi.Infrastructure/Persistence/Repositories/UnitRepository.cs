@@ -34,8 +34,8 @@ public class UnitRepository : IUnitRepository
 
     public async Task<Unit> CreateAsync(Unit unit, CancellationToken cancellationToken = default)
     {
-        unit.CreatedAt = DateTime.UtcNow;
-        unit.UpdatedAt = DateTime.UtcNow;
+        // Domain entity already sets CreatedAt/UpdatedAt via factory method
+        // EF Core will use field-based access configured in UnitConfiguration
 
         _context.Units.Add(unit);
         await _context.SaveChangesAsync(cancellationToken);
@@ -45,7 +45,8 @@ public class UnitRepository : IUnitRepository
 
     public async Task<Unit> UpdateAsync(Unit unit, CancellationToken cancellationToken = default)
     {
-        unit.UpdatedAt = DateTime.UtcNow;
+        // Domain entity already updates UpdatedAt via domain methods
+        // EF Core will use field-based access configured in UnitConfiguration
 
         _context.Units.Update(unit);
         await _context.SaveChangesAsync(cancellationToken);
