@@ -120,31 +120,33 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("AllowNextJs");
+
+// Enable Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Real Estate API v1");
-        options.RoutePrefix = string.Empty; // Swagger at root URL
+        options.RoutePrefix = string.Empty; // Swagger UI at root URL
     });
 }
-
-app.UseHttpsRedirection();
-
-// Enable CORS
-app.UseCors("AllowNextJs");
 
 // Enable Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map controllers
-app.MapControllers();
-
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithName("HealthCheck")
-    .WithTags("Health");
+    .WithTags("Health")
+    .AllowAnonymous();
+
+// Map controllers
+app.MapControllers();
 
 app.Run();
