@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RealEstateApi.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using RealEstateApi.Infrastructure.Persistence;
 namespace RealEstateApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130002634_AddIsPublishedToProperty")]
+    partial class AddIsPublishedToProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,10 +46,6 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasDefaultValue("[]")
                         .HasColumnName("amenities");
 
-                    b.Property<string>("Area")
-                        .HasColumnType("text")
-                        .HasColumnName("area");
-
                     b.Property<string>("AreaRange")
                         .HasColumnType("text")
                         .HasColumnName("area_range");
@@ -59,21 +58,9 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("bedrooms_range");
 
-                    b.Property<string>("Category")
-                        .HasColumnType("text")
-                        .HasColumnName("category");
-
-                    b.Property<string>("City")
-                        .HasColumnType("text")
-                        .HasColumnName("city");
-
                     b.Property<string>("CompletionDate")
                         .HasColumnType("text")
                         .HasColumnName("completion_date");
-
-                    b.Property<string>("Country")
-                        .HasColumnType("text")
-                        .HasColumnName("country");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -86,24 +73,12 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<string>("Developer")
-                        .HasColumnType("text")
-                        .HasColumnName("developer");
-
                     b.Property<string>("Features")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
                         .HasDefaultValue("[]")
                         .HasColumnName("features");
-
-                    b.Property<string>("FloorPlans")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("floor_plans");
-
-                    b.Property<string>("FurnishingStatus")
-                        .HasColumnType("text")
-                        .HasColumnName("furnishing_status");
 
                     b.Property<string>("Images")
                         .IsRequired()
@@ -112,25 +87,8 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasDefaultValue("[]")
                         .HasColumnName("images");
 
-                    b.Property<bool>("IsFeatured")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_featured");
-
                     b.Property<bool>("IsPublished")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_published");
-
-                    b.Property<string>("KeyHighlights")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("key_highlights");
-
-                    b.Property<string>("LandAreaUnit")
-                        .HasColumnType("text")
-                        .HasColumnName("land_area_unit");
+                        .HasColumnType("boolean");
 
                     b.Property<decimal?>("Latitude")
                         .HasPrecision(10, 7)
@@ -160,14 +118,6 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<string>("NearbyPlaces")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("nearby_places");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("text")
-                        .HasColumnName("postal_code");
-
                     b.Property<string>("PriceRange")
                         .HasColumnType("text")
                         .HasColumnName("price_range");
@@ -179,10 +129,6 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasDefaultValue("[]")
                         .HasColumnName("specifications");
 
-                    b.Property<string>("State")
-                        .HasColumnType("text")
-                        .HasColumnName("state");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -190,40 +136,16 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .HasDefaultValue("Draft")
                         .HasColumnName("status");
 
-                    b.Property<string>("StreetAddress")
-                        .HasColumnType("text")
-                        .HasColumnName("street_address");
-
-                    b.Property<int?>("TotalFloors")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_floors");
-
-                    b.Property<decimal?>("TotalLandArea")
-                        .HasColumnType("numeric")
-                        .HasColumnName("total_land_area");
-
-                    b.Property<int?>("TotalUnits")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_units");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("type");
-
-                    b.Property<string>("UnitTypesAvailable")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("unit_types_available");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("VideoTourUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("video_tour_url");
 
                     b.HasKey("Id");
 

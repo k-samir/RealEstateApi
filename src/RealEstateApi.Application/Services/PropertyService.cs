@@ -30,10 +30,20 @@ public class PropertyService : IPropertyService
         return MapToDto(property);
     }
 
-    public async Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync(PropertyFilter filter)
+    public async Task<PagedPropertiesResponse> GetAllPropertiesAsync(PropertyFilter filter)
     {
-        var properties = await _propertyRepository.GetAllAsync(filter);
-        return properties.Select(MapToDto);
+        var (items, total) = await _propertyRepository.GetAllAsync(filter);
+        var projects = items.Select(MapToDto).ToList();
+        
+        var totalPages = (int)Math.Ceiling(total / (double)filter.PageSize);
+        
+        return new PagedPropertiesResponse
+        {
+            Projects = projects,
+            Total = total,
+            Page = filter.Page,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<IEnumerable<PropertyResponseDto>> GetAgentPropertiesAsync(string agentId)
@@ -53,46 +63,75 @@ public class PropertyService : IPropertyService
             dto.Description
         );
 
-        // Update additional details through domain methods
-        if (dto.LongDescription != null || dto.Latitude.HasValue || dto.Longitude.HasValue || dto.CompletionDate != null)
-        {
-            property.UpdateDetails(
-                dto.Name,
-                dto.Location,
-                dto.Type,
-                dto.Description,
-                dto.LongDescription,
-                dto.Latitude,
-                dto.Longitude,
-                dto.CompletionDate
-            );
-        }
+        // Update basic info
+        property.UpdateBasicInfo(
+            dto.Name,
+            dto.Type,
+            dto.Description,
+            dto.Developer,
+            dto.Category,
+            dto.IsFeatured
+        );
 
-        // Update features and amenities if provided
-        if (dto.Features != null || dto.Amenities != null || dto.Specifications != null)
-        {
-            property.UpdateFeaturesAndAmenities(
-                dto.Features,
-                dto.Amenities,
-                dto.Specifications
-            );
-        }
+        // Update location
+        property.UpdateLocation(
+            dto.Location,
+            dto.StreetAddress,
+            dto.Area,
+            dto.City,
+            dto.State,
+            dto.Country,
+            dto.PostalCode,
+            dto.Latitude,
+            dto.Longitude
+        );
 
-        // Update images if provided
-        if (dto.MainImage != null || dto.Images != null)
-        {
-            property.UpdateImages(dto.MainImage, dto.Images);
-        }
+        // Update project details
+        property.UpdateProjectDetails(
+            dto.PriceRange,
+            dto.CompletionDate,
+            dto.TotalUnits,
+            dto.TotalFloors,
+            dto.TotalLandArea,
+            dto.LandAreaUnit,
+            dto.UnitTypesAvailable
+        );
 
-        // Update ranges if provided
-        if (dto.BedroomsRange != null || dto.BathroomsRange != null || dto.AreaRange != null || dto.PriceRange != null)
+        // Update unit specifications
+        property.UpdateUnitSpecifications(
+            dto.BedroomsRange,
+            dto.BathroomsRange,
+            dto.AreaRange,
+            dto.FurnishingStatus
+        );
+
+        // Update descriptions
+        property.UpdateDescriptions(
+            dto.Description,
+            dto.LongDescription,
+            dto.KeyHighlights
+        );
+
+        // Update features and amenities
+        property.UpdateFeaturesAndAmenities(
+            dto.Features,
+            dto.Amenities,
+            dto.Specifications,
+            dto.NearbyPlaces
+        );
+
+        // Update media
+        property.UpdateMedia(
+            dto.MainImage,
+            dto.Images,
+            dto.FloorPlans,
+            dto.VideoTourUrl
+        );
+
+        // Set publish status if provided
+        if (dto.IsPublished)
         {
-            property.UpdateRanges(
-                dto.BedroomsRange,
-                dto.BathroomsRange,
-                dto.AreaRange,
-                dto.PriceRange
-            );
+            property.SetPublishStatus(dto.IsPublished);
         }
 
         var created = await _propertyRepository.CreateAsync(property);
@@ -111,49 +150,95 @@ public class PropertyService : IPropertyService
         if (!CanUserModifyProperty(property, userId, userRole))
             throw new ForbiddenException("You don't have permission to update this property");
 
-        // Check if property can be edited
-        if (!property.IsEditable())
-            throw new DomainException("This property cannot be edited");
 
-        // Update basic details if provided
-        if (dto.Name != null || dto.Location != null || dto.Type != null || dto.Description != null)
+
+        // Update basic info if provided
+        if (dto.Name != null || dto.Type != null || dto.Description != null || dto.Developer != null || dto.Category != null || dto.IsFeatured.HasValue)
         {
-            property.UpdateDetails(
+            property.UpdateBasicInfo(
                 dto.Name ?? property.Name,
-                dto.Location ?? property.Location,
                 dto.Type ?? property.Type,
                 dto.Description ?? property.Description,
-                dto.LongDescription,
+                dto.Developer,
+                dto.Category,
+                dto.IsFeatured
+            );
+        }
+
+        // Update location if provided
+        if (dto.Location != null || dto.StreetAddress != null || dto.Area != null || dto.City != null ||
+            dto.State != null || dto.Country != null || dto.PostalCode != null ||
+            dto.Latitude.HasValue || dto.Longitude.HasValue)
+        {
+            property.UpdateLocation(
+                dto.Location ?? property.Location,
+                dto.StreetAddress,
+                dto.Area,
+                dto.City,
+                dto.State,
+                dto.Country,
+                dto.PostalCode,
                 dto.Latitude,
-                dto.Longitude,
-                dto.CompletionDate
+                dto.Longitude
+            );
+        }
+
+        // Update project details if provided
+        if (dto.PriceRange != null || dto.CompletionDate != null || dto.TotalUnits.HasValue ||
+            dto.TotalFloors.HasValue || dto.TotalLandArea.HasValue || dto.LandAreaUnit != null ||
+            dto.UnitTypesAvailable != null)
+        {
+            property.UpdateProjectDetails(
+                dto.PriceRange,
+                dto.CompletionDate,
+                dto.TotalUnits,
+                dto.TotalFloors,
+                dto.TotalLandArea,
+                dto.LandAreaUnit,
+                dto.UnitTypesAvailable
+            );
+        }
+
+        // Update unit specifications if provided
+        if (dto.BedroomsRange != null || dto.BathroomsRange != null || dto.AreaRange != null || dto.FurnishingStatus != null)
+        {
+            property.UpdateUnitSpecifications(
+                dto.BedroomsRange,
+                dto.BathroomsRange,
+                dto.AreaRange,
+                dto.FurnishingStatus
+            );
+        }
+
+        // Update descriptions if provided
+        if (dto.Description != null || dto.LongDescription != null || dto.KeyHighlights != null)
+        {
+            property.UpdateDescriptions(
+                dto.Description,
+                dto.LongDescription,
+                dto.KeyHighlights
             );
         }
 
         // Update features and amenities if provided
-        if (dto.Features != null || dto.Amenities != null || dto.Specifications != null)
+        if (dto.Features != null || dto.Amenities != null || dto.Specifications != null || dto.NearbyPlaces != null)
         {
             property.UpdateFeaturesAndAmenities(
                 dto.Features,
                 dto.Amenities,
-                dto.Specifications
+                dto.Specifications,
+                dto.NearbyPlaces
             );
         }
 
-        // Update images if provided
-        if (dto.MainImage != null || dto.Images != null)
+        // Update media if provided
+        if (dto.MainImage != null || dto.Images != null || dto.FloorPlans != null || dto.VideoTourUrl != null)
         {
-            property.UpdateImages(dto.MainImage, dto.Images);
-        }
-
-        // Update ranges if provided
-        if (dto.BedroomsRange != null || dto.BathroomsRange != null || dto.AreaRange != null || dto.PriceRange != null)
-        {
-            property.UpdateRanges(
-                dto.BedroomsRange,
-                dto.BathroomsRange,
-                dto.AreaRange,
-                dto.PriceRange
+            property.UpdateMedia(
+                dto.MainImage,
+                dto.Images,
+                dto.FloorPlans,
+                dto.VideoTourUrl
             );
         }
 
@@ -161,6 +246,12 @@ public class PropertyService : IPropertyService
         if (dto.Status != null)
         {
             UpdatePropertyStatus(property, dto.Status);
+        }
+
+        // Handle publish status changes
+        if (dto.IsPublished.HasValue)
+        {
+            property.SetPublishStatus(dto.IsPublished.Value);
         }
 
         var updated = await _propertyRepository.UpdateAsync(property);
@@ -240,24 +331,62 @@ public class PropertyService : IPropertyService
         {
             Id = property.Id,
             AgentId = property.AgentId,
+
+            // Basic Information
             Name = property.Name,
-            Location = property.Location,
-            Latitude = property.Latitude,
-            Longitude = property.Longitude,
+            Developer = property.Developer,
+            Category = property.Category,
             Type = property.Type,
             Status = property.Status.ToString(),
+            IsPublished = property.IsPublished,
+            IsFeatured = property.IsFeatured,
+
+            // Location
+            Location = property.Location,
+            StreetAddress = property.StreetAddress,
+            Area = property.Area,
+            City = property.City,
+            State = property.State,
+            Country = property.Country,
+            PostalCode = property.PostalCode,
+            Latitude = property.Latitude,
+            Longitude = property.Longitude,
+
+            // Pricing
+            PriceRange = property.PriceRange,
+
+            // Project Details
             CompletionDate = property.CompletionDate,
-            Description = property.Description,
-            LongDescription = property.LongDescription,
-            Features = property.Features,
-            Amenities = property.Amenities,
-            Specifications = property.Specifications,
-            MainImage = property.MainImage,
-            Images = property.Images,
+            TotalUnits = property.TotalUnits,
+            TotalFloors = property.TotalFloors,
+            TotalLandArea = property.TotalLandArea,
+            LandAreaUnit = property.LandAreaUnit,
+            UnitTypesAvailable = property.UnitTypesAvailable,
+
+            // Unit Specifications
             BedroomsRange = property.BedroomsRange,
             BathroomsRange = property.BathroomsRange,
             AreaRange = property.AreaRange,
-            PriceRange = property.PriceRange,
+            FurnishingStatus = property.FurnishingStatus,
+
+            // Descriptions
+            Description = property.Description,
+            LongDescription = property.LongDescription,
+            KeyHighlights = property.KeyHighlights,
+
+            // Features & Amenities
+            Features = property.Features,
+            Amenities = property.Amenities,
+            Specifications = property.Specifications,
+            NearbyPlaces = property.NearbyPlaces,
+
+            // Media
+            MainImage = property.MainImage,
+            Images = property.Images,
+            FloorPlans = property.FloorPlans,
+            VideoTourUrl = property.VideoTourUrl,
+
+            // Units
             Units = property.Units.Select(u => new UnitResponseDto
             {
                 Id = u.Id,
@@ -273,6 +402,8 @@ public class PropertyService : IPropertyService
                 CreatedAt = u.CreatedAt,
                 UpdatedAt = u.UpdatedAt
             }).ToList(),
+
+            // Metadata
             CreatedAt = property.CreatedAt,
             UpdatedAt = property.UpdatedAt
         };

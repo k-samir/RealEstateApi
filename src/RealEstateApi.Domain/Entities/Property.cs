@@ -15,31 +15,57 @@ public class Property
 
     // Basic Information
     public string Name { get; private set; } = string.Empty;
-    public string Location { get; private set; } = string.Empty;
-    public decimal? Latitude { get; private set; }
-    public decimal? Longitude { get; private set; }
+    public string? Developer { get; private set; }
+    public string? Category { get; private set; } // Development Project, Land Sale
     public string Type { get; private set; } = string.Empty;
     public PropertyStatus Status { get; private set; } = PropertyStatus.Draft;
+    public bool IsPublished { get; private set; } = false;
+    public bool IsFeatured { get; private set; } = false;
+
+    // Location
+    public string Location { get; private set; } = string.Empty; // General location
+    public string? StreetAddress { get; private set; }
+    public string? Area { get; private set; }
+    public string? City { get; private set; }
+    public string? State { get; private set; }
+    public string? Country { get; private set; }
+    public string? PostalCode { get; private set; }
+    public decimal? Latitude { get; private set; }
+    public decimal? Longitude { get; private set; }
+
+    // Pricing
+    public string? PriceRange { get; private set; }
+
+    // Project Details
     public string? CompletionDate { get; private set; }
+    public int? TotalUnits { get; private set; }
+    public int? TotalFloors { get; private set; }
+    public decimal? TotalLandArea { get; private set; }
+    public string? LandAreaUnit { get; private set; }
+    public List<string>? UnitTypesAvailable { get; private set; }
+
+    // Unit Specifications (ranges for display)
+    public string? BedroomsRange { get; private set; }
+    public string? BathroomsRange { get; private set; }
+    public string? AreaRange { get; private set; }
+    public string? FurnishingStatus { get; private set; }
 
     // Descriptions
     public string Description { get; private set; } = string.Empty;
     public string? LongDescription { get; private set; }
+    public List<string>? KeyHighlights { get; private set; }
 
     // Features & Amenities (JSON arrays)
     public List<string> Features { get; private set; } = new();
     public List<Amenity> Amenities { get; private set; } = new();
     public List<Specification> Specifications { get; private set; } = new();
+    public List<NearbyPlace>? NearbyPlaces { get; private set; }
 
     // Media
     public string? MainImage { get; private set; }
     public List<string> Images { get; private set; } = new();
-
-    // Summary Fields (ranges for display)
-    public string? BedroomsRange { get; private set; }
-    public string? BathroomsRange { get; private set; }
-    public string? AreaRange { get; private set; }
-    public string? PriceRange { get; private set; }
+    public List<Document>? FloorPlans { get; private set; }
+    public string? VideoTourUrl { get; private set; }
 
     // Relationships
     private readonly List<Unit> _units = new();
@@ -96,21 +122,16 @@ public class Property
     /// <summary>
     /// Update basic property details
     /// </summary>
-    public void UpdateDetails(
+    public void UpdateBasicInfo(
         string name,
-        string location,
         string type,
         string description,
-        string? longDescription = null,
-        decimal? latitude = null,
-        decimal? longitude = null,
-        string? completionDate = null)
+        string? developer = null,
+        string? category = null,
+        bool? isFeatured = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Property name is required");
-
-        if (string.IsNullOrWhiteSpace(location))
-            throw new DomainException("Property location is required");
 
         if (string.IsNullOrWhiteSpace(type))
             throw new DomainException("Property type is required");
@@ -119,13 +140,81 @@ public class Property
             throw new DomainException("Property description is required");
 
         Name = name;
-        Location = location;
         Type = type;
         Description = description;
-        LongDescription = longDescription;
+        Developer = developer;
+        Category = category;
+
+        if (isFeatured.HasValue)
+            IsFeatured = isFeatured.Value;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Update location details
+    /// </summary>
+    public void UpdateLocation(
+        string location,
+        string? streetAddress = null,
+        string? area = null,
+        string? city = null,
+        string? state = null,
+        string? country = null,
+        string? postalCode = null,
+        decimal? latitude = null,
+        decimal? longitude = null)
+    {
+        if (string.IsNullOrWhiteSpace(location))
+            throw new DomainException("Property location is required");
+
+        Location = location;
+        StreetAddress = streetAddress;
+        Area = area;
+        City = city;
+        State = state;
+        Country = country;
+        PostalCode = postalCode;
         Latitude = latitude;
         Longitude = longitude;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Update project details
+    /// </summary>
+    public void UpdateProjectDetails(
+        string? priceRange = null,
+        string? completionDate = null,
+        int? totalUnits = null,
+        int? totalFloors = null,
+        decimal? totalLandArea = null,
+        string? landAreaUnit = null,
+        List<string>? unitTypesAvailable = null)
+    {
+        PriceRange = priceRange;
         CompletionDate = completionDate;
+        TotalUnits = totalUnits;
+        TotalFloors = totalFloors;
+        TotalLandArea = totalLandArea;
+        LandAreaUnit = landAreaUnit;
+        UnitTypesAvailable = unitTypesAvailable;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Update descriptions
+    /// </summary>
+    public void UpdateDescriptions(
+        string? description = null,
+        string? longDescription = null,
+        List<string>? keyHighlights = null)
+    {
+        if (description != null)
+            Description = description;
+
+        LongDescription = longDescription;
+        KeyHighlights = keyHighlights;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -135,7 +224,8 @@ public class Property
     public void UpdateFeaturesAndAmenities(
         List<string>? features = null,
         List<Amenity>? amenities = null,
-        List<Specification>? specifications = null)
+        List<Specification>? specifications = null,
+        List<NearbyPlace>? nearbyPlaces = null)
     {
         if (features != null)
             Features = features;
@@ -146,13 +236,20 @@ public class Property
         if (specifications != null)
             Specifications = specifications;
 
+        if (nearbyPlaces != null)
+            NearbyPlaces = nearbyPlaces;
+
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Update property images
+    /// Update property media
     /// </summary>
-    public void UpdateImages(string? mainImage = null, List<string>? images = null)
+    public void UpdateMedia(
+        string? mainImage = null,
+        List<string>? images = null,
+        List<Document>? floorPlans = null,
+        string? videoTourUrl = null)
     {
         if (mainImage != null)
             MainImage = mainImage;
@@ -160,17 +257,23 @@ public class Property
         if (images != null)
             Images = images;
 
+        if (floorPlans != null)
+            FloorPlans = floorPlans;
+
+        if (videoTourUrl != null)
+            VideoTourUrl = videoTourUrl;
+
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Update property summary ranges
+    /// Update unit specifications and ranges
     /// </summary>
-    public void UpdateRanges(
+    public void UpdateUnitSpecifications(
         string? bedroomsRange = null,
         string? bathroomsRange = null,
         string? areaRange = null,
-        string? priceRange = null)
+        string? furnishingStatus = null)
     {
         if (bedroomsRange != null)
             BedroomsRange = bedroomsRange;
@@ -181,8 +284,8 @@ public class Property
         if (areaRange != null)
             AreaRange = areaRange;
 
-        if (priceRange != null)
-            PriceRange = priceRange;
+        if (furnishingStatus != null)
+            FurnishingStatus = furnishingStatus;
 
         UpdatedAt = DateTime.UtcNow;
     }
@@ -198,6 +301,36 @@ public class Property
                 "Property cannot be published. Required: name, description, main image, and at least one unit.");
 
         Status = PropertyStatus.Published;
+        IsPublished = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Unpublish the property (hide from public view)
+    /// </summary>
+    public void Unpublish()
+    {
+        IsPublished = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Set publish status directly
+    /// </summary>
+    public void SetPublishStatus(bool isPublished)
+    {
+        IsPublished = isPublished;
+        
+        // Sync Status with IsPublished for Draft/Published transitions
+        if (isPublished && Status == PropertyStatus.Draft)
+        {
+            Status = PropertyStatus.Published;
+        }
+        else if (!isPublished && Status == PropertyStatus.Published)
+        {
+            Status = PropertyStatus.Draft;
+        }
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -243,10 +376,7 @@ public class Property
     /// </summary>
     public bool CanBePublished()
     {
-        return !string.IsNullOrEmpty(Name)
-            && !string.IsNullOrEmpty(Description)
-            && !string.IsNullOrEmpty(MainImage)
-            && _units.Count > 0;
+        return true; // Allow publishing incomplete properties
     }
 
     /// <summary>
@@ -285,14 +415,7 @@ public class Property
         UpdatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Check if property is editable
-    /// Business rule: Sold properties cannot be edited
-    /// </summary>
-    public bool IsEditable()
-    {
-        return Status != PropertyStatus.Sold;
-    }
+
 
     // Internal setter for EF Core (needed for loading from database)
     internal void SetId(int id) => Id = id;
@@ -314,4 +437,26 @@ public class Specification
 {
     public string Label { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Value object for nearby places
+/// </summary>
+public class NearbyPlace
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // School, Mall, Metro, etc.
+    public string Distance { get; set; } = string.Empty; // "5 min walk", "2 km"
+    public string? Icon { get; set; }
+}
+
+/// <summary>
+/// Value object for documents (floor plans, brochures)
+/// </summary>
+public class Document
+{
+    public string Name { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // PDF, Image
+    public long? Size { get; set; } // File size in bytes
 }

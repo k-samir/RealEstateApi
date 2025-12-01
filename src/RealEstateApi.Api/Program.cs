@@ -5,6 +5,9 @@ using Microsoft.OpenApi.Models;
 using RealEstateApi.Application.Interfaces;
 using RealEstateApi.Infrastructure.Persistence;
 using RealEstateApi.Infrastructure.Persistence.Repositories;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using RealEstateApi.Infrastructure.Security;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,22 +67,30 @@ builder.Services.AddScoped<IPropertyService, RealEstateApi.Application.Services.
 
 // Configure JWT Authentication from Better Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var issuer = jwtSettings["Issuer"];
+        var jwksUrl = $"{issuer}/api/auth/jwks"; // Better Auth JWKS endpoint
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = jwtSettings.GetValue<bool>("ValidateIssuer"),
             ValidateAudience = jwtSettings.GetValue<bool>("ValidateAudience"),
             ValidateLifetime = jwtSettings.GetValue<bool>("ValidateLifetime"),
-            ValidateIssuerSigningKey = jwtSettings.GetValue<bool>("ValidateIssuerSigningKey"),
-            ValidIssuer = jwtSettings["Issuer"],
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
             ValidAudience = jwtSettings["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            ClockSkew = TimeSpan.Zero // Remove default 5-minute tolerance
+            ClockSkew = TimeSpan.Zero
         };
+
+        // Configure JWKS retrieval from Better Auth
+        options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+            jwksUrl,
+            new BetterAuthJwksRetriever(), // Custom retriever for Better Auth's JWKS format
+            new HttpDocumentRetriever { RequireHttps = false } // Allow HTTP for localhost
+        );
 
         options.Events = new JwtBearerEvents
         {
@@ -150,3 +161,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
 app.MapControllers();
 
 app.Run();
+
+// Make Program accessible for integration tests
+public partial class Program { }

@@ -33,10 +33,13 @@ public class PropertiesController : ControllerBase
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<PropertyResponseDto>>> GetProperties(
+    public async Task<ActionResult<PagedPropertiesResponse>> GetProperties(
         [FromQuery] string? location = null,
         [FromQuery] string? type = null,
         [FromQuery] string? status = "published",
+        [FromQuery] int? minBedrooms = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
         [FromQuery] string? search = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
@@ -48,13 +51,16 @@ public class PropertiesController : ControllerBase
                 Location = location,
                 Type = type,
                 Status = status,
+                MinBedrooms = minBedrooms,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
                 SearchQuery = search,
                 Page = page,
                 PageSize = pageSize
             };
 
-            var properties = await _propertyService.GetAllPropertiesAsync(filter);
-            return Ok(properties);
+            var response = await _propertyService.GetAllPropertiesAsync(filter);
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -243,5 +249,5 @@ public class PropertiesController : ControllerBase
             _logger.LogError(ex, "Error publishing property {PropertyId}", id);
             return StatusCode(500, new { message = "An error occurred while publishing the property" });
         }
-    }
+    } 
 }

@@ -8,7 +8,7 @@ namespace RealEstateApi.Application.Interfaces;
 public interface IPropertyService
 {
     Task<PropertyResponseDto> GetPropertyByIdAsync(int id);
-    Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync(PropertyFilter filter);
+    Task<PagedPropertiesResponse> GetAllPropertiesAsync(PropertyFilter filter);
     Task<IEnumerable<PropertyResponseDto>> GetAgentPropertiesAsync(string agentId);
     Task<PropertyResponseDto> CreatePropertyAsync(CreatePropertyDto dto, string agentId);
     Task<PropertyResponseDto> UpdatePropertyAsync(int id, UpdatePropertyDto dto, string userId, string? userRole);
