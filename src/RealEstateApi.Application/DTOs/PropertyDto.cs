@@ -15,6 +15,16 @@ public class CreatePropertyDto
     public bool IsPublished { get; set; } = false;
     public bool IsFeatured { get; set; } = false;
 
+    // Property Mode
+    public string? PropertyMode { get; set; } // "Standalone" or "MultiUnit"
+
+    // Standalone Unit Fields (used when PropertyMode = "Standalone")
+    public int? Bedrooms { get; set; }
+    public int? Bathrooms { get; set; }
+    public decimal? UnitArea { get; set; }
+    public decimal? UnitPrice { get; set; }
+    public string? AreaUnit { get; set; }
+
     // Location
     public string Location { get; set; } = string.Empty; // General location
     public string? StreetAddress { get; set; }
@@ -74,6 +84,16 @@ public class UpdatePropertyDto
     public string? Status { get; set; }
     public bool? IsPublished { get; set; }
     public bool? IsFeatured { get; set; }
+
+    // Property Mode
+    public string? PropertyMode { get; set; } // "Standalone" or "MultiUnit"
+
+    // Standalone Unit Fields (used when PropertyMode = "Standalone")
+    public int? Bedrooms { get; set; }
+    public int? Bathrooms { get; set; }
+    public decimal? UnitArea { get; set; }
+    public decimal? UnitPrice { get; set; }
+    public string? AreaUnit { get; set; }
 
     // Location
     public string? Location { get; set; }
@@ -138,6 +158,16 @@ public class PropertyResponseDto
     public bool IsPublished { get; set; }
     public bool IsFeatured { get; set; }
 
+    // Property Mode
+    public string PropertyMode { get; set; } = "Standalone";
+
+    // Standalone Unit Fields (used when PropertyMode = "Standalone")
+    public int? Bedrooms { get; set; }
+    public int? Bathrooms { get; set; }
+    public decimal? UnitArea { get; set; }
+    public decimal? UnitPrice { get; set; }
+    public string? AreaUnit { get; set; }
+
     // Location
     public string Location { get; set; } = string.Empty;
     public string? StreetAddress { get; set; }
@@ -192,6 +222,48 @@ public class PropertyResponseDto
 }
 
 /// <summary>
+/// DTO for creating a new unit
+/// </summary>
+public class CreateUnitDto
+{
+    public string UnitNumber { get; set; } = string.Empty;
+    public string? Floor { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public int Bedrooms { get; set; }
+    public int Bathrooms { get; set; }
+    public decimal Area { get; set; }
+    public decimal Price { get; set; }
+    public string? Status { get; set; }
+
+    // Media & Marketing
+    public List<string>? Images { get; set; }
+    public List<string>? FloorPlans { get; set; }
+    public List<string>? Amenities { get; set; }
+    public string? Description { get; set; }
+}
+
+/// <summary>
+/// DTO for updating an existing unit
+/// </summary>
+public class UpdateUnitDto
+{
+    public string? UnitNumber { get; set; }
+    public string? Floor { get; set; }
+    public string? Type { get; set; }
+    public int? Bedrooms { get; set; }
+    public int? Bathrooms { get; set; }
+    public decimal? Area { get; set; }
+    public decimal? Price { get; set; }
+    public string? Status { get; set; }
+
+    // Media & Marketing
+    public List<string>? Images { get; set; }
+    public List<string>? FloorPlans { get; set; }
+    public List<string>? Amenities { get; set; }
+    public string? Description { get; set; }
+}
+
+/// <summary>
 /// DTO for unit response
 /// </summary>
 public class UnitResponseDto
@@ -206,6 +278,13 @@ public class UnitResponseDto
     public decimal Area { get; set; }
     public decimal Price { get; set; }
     public string Status { get; set; } = string.Empty;
+
+    // Media & Marketing
+    public List<string> Images { get; set; } = new();
+    public List<string> FloorPlans { get; set; } = new();
+    public List<string> Amenities { get; set; } = new();
+    public string? Description { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -58,6 +58,31 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .IsRequired()
             .HasDefaultValue(false);
 
+        // Property Mode
+        builder.Property(p => p.Mode)
+            .HasColumnName("property_mode")
+            .IsRequired()
+            .HasConversion<string>() // Store enum as string in database
+            .HasDefaultValue(PropertyMode.Standalone);
+
+        // Standalone Unit Fields (for Standalone mode)
+        builder.Property(p => p.Bedrooms)
+            .HasColumnName("bedrooms");
+
+        builder.Property(p => p.Bathrooms)
+            .HasColumnName("bathrooms");
+
+        builder.Property(p => p.UnitArea)
+            .HasColumnName("unit_area")
+            .HasPrecision(10, 2);
+
+        builder.Property(p => p.UnitPrice)
+            .HasColumnName("unit_price")
+            .HasPrecision(15, 2);
+
+        builder.Property(p => p.AreaUnit)
+            .HasColumnName("area_unit");
+
         // Location
         builder.Property(p => p.Location)
             .HasColumnName("location")
@@ -230,5 +255,6 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasIndex(p => p.AgentId);
         builder.HasIndex(p => p.Location);
         builder.HasIndex(p => p.Status);
+        builder.HasIndex(p => p.Mode);
     }
 }

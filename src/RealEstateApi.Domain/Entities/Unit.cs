@@ -27,6 +27,12 @@ public class Unit
     public decimal Price { get; private set; }
     public UnitStatus Status { get; private set; } = UnitStatus.Available;
 
+    // Media & Marketing
+    public List<string> Images { get; private set; } = new();
+    public List<string> FloorPlans { get; private set; } = new();
+    public List<string> Amenities { get; private set; } = new();
+    public string? Description { get; private set; }
+
     // Relationships
     public Property Property { get; private set; } = null!;
 
@@ -48,7 +54,11 @@ public class Unit
         int bathrooms,
         decimal area,
         decimal price,
-        string? floor = null)
+        string? floor = null,
+        List<string>? images = null,
+        List<string>? floorPlans = null,
+        List<string>? amenities = null,
+        string? description = null)
     {
         if (string.IsNullOrWhiteSpace(unitNumber))
             throw new DomainException("Unit number is required");
@@ -81,6 +91,10 @@ public class Unit
             Area = area,
             Price = price,
             Floor = floor,
+            Images = images ?? new List<string>(),
+            FloorPlans = floorPlans ?? new List<string>(),
+            Amenities = amenities ?? new List<string>(),
+            Description = description,
             Status = UnitStatus.Available,
             CreatedAt = now,
             UpdatedAt = now
@@ -187,5 +201,46 @@ public class Unit
     public bool IsAvailable()
     {
         return Status == UnitStatus.Available;
+    }
+
+    /// <summary>
+    /// Update unit media (images and floor plans)
+    /// </summary>
+    public void UpdateMedia(List<string>? images = null, List<string>? floorPlans = null)
+    {
+        if (Status == UnitStatus.Sold)
+            throw new DomainException("Cannot update media of sold units");
+
+        if (images != null)
+            Images = images;
+
+        if (floorPlans != null)
+            FloorPlans = floorPlans;
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Update unit amenities
+    /// </summary>
+    public void UpdateAmenities(List<string> amenities)
+    {
+        if (Status == UnitStatus.Sold)
+            throw new DomainException("Cannot update amenities of sold units");
+
+        Amenities = amenities ?? new List<string>();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Update unit description
+    /// </summary>
+    public void UpdateDescription(string? description)
+    {
+        if (Status == UnitStatus.Sold)
+            throw new DomainException("Cannot update description of sold units");
+
+        Description = description;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

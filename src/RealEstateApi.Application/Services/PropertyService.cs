@@ -73,6 +73,26 @@ public class PropertyService : IPropertyService
             dto.IsFeatured
         );
 
+        // Handle PropertyMode and standalone unit details
+        if (!string.IsNullOrEmpty(dto.PropertyMode))
+        {
+            var mode = Enum.Parse<PropertyMode>(dto.PropertyMode, ignoreCase: true);
+            property.SetMode(mode);
+
+            // If Standalone mode and unit details provided, update them
+            if (mode == PropertyMode.Standalone && dto.Bedrooms.HasValue && dto.Bathrooms.HasValue &&
+                dto.UnitArea.HasValue && dto.UnitPrice.HasValue)
+            {
+                property.UpdateStandaloneUnitDetails(
+                    dto.Bedrooms.Value,
+                    dto.Bathrooms.Value,
+                    dto.UnitArea.Value,
+                    dto.UnitPrice.Value,
+                    dto.AreaUnit
+                );
+            }
+        }
+
         // Update location
         property.UpdateLocation(
             dto.Location,
@@ -150,7 +170,31 @@ public class PropertyService : IPropertyService
         if (!CanUserModifyProperty(property, userId, userRole))
             throw new ForbiddenException("You don't have permission to update this property");
 
+        // Handle PropertyMode changes
+        if (!string.IsNullOrEmpty(dto.PropertyMode))
+        {
+            var mode = Enum.Parse<PropertyMode>(dto.PropertyMode, ignoreCase: true);
+            property.SetMode(mode);
+        }
 
+        // Handle standalone unit details for Standalone mode
+        if (property.Mode == PropertyMode.Standalone &&
+            (dto.Bedrooms.HasValue || dto.Bathrooms.HasValue || dto.UnitArea.HasValue || dto.UnitPrice.HasValue))
+        {
+            property.UpdateStandaloneUnitDetails(
+                dto.Bedrooms ?? property.Bedrooms ?? 0,
+                dto.Bathrooms ?? property.Bathrooms ?? 0,
+                dto.UnitArea ?? property.UnitArea ?? 0,
+                dto.UnitPrice ?? property.UnitPrice ?? 0,
+                dto.AreaUnit ?? property.AreaUnit
+            );
+        }
+
+        // For MultiUnit properties, calculate ranges from units if units exist
+        if (property.Mode == PropertyMode.MultiUnit && property.Units.Any())
+        {
+            property.CalculateRangesFromUnits();
+        }
 
         // Update basic info if provided
         if (dto.Name != null || dto.Type != null || dto.Description != null || dto.Developer != null || dto.Category != null || dto.IsFeatured.HasValue)
@@ -341,6 +385,16 @@ public class PropertyService : IPropertyService
             IsPublished = property.IsPublished,
             IsFeatured = property.IsFeatured,
 
+            // Property Mode
+            PropertyMode = property.Mode.ToString(),
+
+            // Standalone Unit Fields
+            Bedrooms = property.Bedrooms,
+            Bathrooms = property.Bathrooms,
+            UnitArea = property.UnitArea,
+            UnitPrice = property.UnitPrice,
+            AreaUnit = property.AreaUnit,
+
             // Location
             Location = property.Location,
             StreetAddress = property.StreetAddress,
@@ -399,6 +453,10 @@ public class PropertyService : IPropertyService
                 Area = u.Area,
                 Price = u.Price,
                 Status = u.Status.ToString(),
+                Images = u.Images,
+                FloorPlans = u.FloorPlans,
+                Amenities = u.Amenities,
+                Description = u.Description,
                 CreatedAt = u.CreatedAt,
                 UpdatedAt = u.UpdatedAt
             }).ToList(),

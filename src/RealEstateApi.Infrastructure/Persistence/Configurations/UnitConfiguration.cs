@@ -63,6 +63,26 @@ public class UnitConfiguration : IEntityTypeConfiguration<Unit>
             .HasConversion<string>() // Store enum as string in database
             .HasDefaultValue(UnitStatus.Available);
 
+        // Media & Marketing - Store as JSON
+        builder.Property(u => u.Images)
+            .HasColumnName("images")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.FloorPlans)
+            .HasColumnName("floor_plans")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.Amenities)
+            .HasColumnName("amenities")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.Description)
+            .HasColumnName("description")
+            .HasColumnType("text");
+
         // Metadata
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")

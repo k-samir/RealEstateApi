@@ -64,6 +64,7 @@ builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 
 // Register application services (Use Cases)
 builder.Services.AddScoped<IPropertyService, RealEstateApi.Application.Services.PropertyService>();
+builder.Services.AddScoped<IUnitService, RealEstateApi.Application.Services.UnitService>();
 
 // Configure JWT Authentication from Better Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
