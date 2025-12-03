@@ -182,6 +182,8 @@ public class PropertyServiceTests
     {
         // Arrange
         var property = Property.Create("agent-123", "Test Property", "Dubai", "Apartment", "Test");
+        // Set standalone unit fields to satisfy publish validation
+        property.UpdateStandaloneUnitDetails(3, 2, 1500, 250000, "sqft");
         _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(property);
         _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Property>(), It.IsAny<CancellationToken>())).ReturnsAsync(property);
 
