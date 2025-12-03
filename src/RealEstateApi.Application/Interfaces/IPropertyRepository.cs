@@ -9,7 +9,7 @@ namespace RealEstateApi.Application.Interfaces;
 public interface IPropertyRepository
 {
     // Query operations
-    Task<IEnumerable<Property>> GetAllAsync(PropertyFilter? filter = null, CancellationToken cancellationToken = default);
+    Task<(List<Property> items, int total)> GetAllAsync(PropertyFilter? filter = null, CancellationToken cancellationToken = default);
     Task<Property?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Property>> GetByAgentIdAsync(string agentId, CancellationToken cancellationToken = default);
 
@@ -31,6 +31,7 @@ public class PropertyFilter
     public string? Type { get; set; }
     public string? Status { get; set; }
     public int? MinBedrooms { get; set; }
+    public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     public string? SearchQuery { get; set; }
     public int Page { get; set; } = 1;

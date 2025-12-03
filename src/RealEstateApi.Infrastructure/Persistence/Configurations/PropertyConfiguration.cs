@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RealEstateApi.Domain.Entities;
+using RealEstateApi.Domain.Enums;
 using System.Text.Json;
 
 namespace RealEstateApi.Infrastructure.Persistence.Configurations;
@@ -15,6 +16,9 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
     {
         builder.ToTable("property");
 
+        // Configure EF Core to use field-based access for private setters
+        builder.UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id)
             .HasColumnName("id");
@@ -28,9 +32,79 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasColumnName("name")
             .IsRequired();
 
+        builder.Property(p => p.Developer)
+            .HasColumnName("developer");
+
+        builder.Property(p => p.Category)
+            .HasColumnName("category");
+
+        builder.Property(p => p.Type)
+            .HasColumnName("type")
+            .IsRequired();
+
+        builder.Property(p => p.Status)
+            .HasColumnName("status")
+            .IsRequired()
+            .HasConversion<string>() // Store enum as string in database
+            .HasDefaultValue(PropertyStatus.Draft);
+
+        builder.Property(p => p.IsPublished)
+            .HasColumnName("is_published")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.IsFeatured)
+            .HasColumnName("is_featured")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        // Property Mode
+        builder.Property(p => p.Mode)
+            .HasColumnName("property_mode")
+            .IsRequired()
+            .HasConversion<string>() // Store enum as string in database
+            .HasDefaultValue(PropertyMode.Standalone);
+
+        // Standalone Unit Fields (for Standalone mode)
+        builder.Property(p => p.Bedrooms)
+            .HasColumnName("bedrooms");
+
+        builder.Property(p => p.Bathrooms)
+            .HasColumnName("bathrooms");
+
+        builder.Property(p => p.UnitArea)
+            .HasColumnName("unit_area")
+            .HasPrecision(10, 2);
+
+        builder.Property(p => p.UnitPrice)
+            .HasColumnName("unit_price")
+            .HasPrecision(15, 2);
+
+        builder.Property(p => p.AreaUnit)
+            .HasColumnName("area_unit");
+
+        // Location
         builder.Property(p => p.Location)
             .HasColumnName("location")
             .IsRequired();
+
+        builder.Property(p => p.StreetAddress)
+            .HasColumnName("street_address");
+
+        builder.Property(p => p.Area)
+            .HasColumnName("area");
+
+        builder.Property(p => p.City)
+            .HasColumnName("city");
+
+        builder.Property(p => p.State)
+            .HasColumnName("state");
+
+        builder.Property(p => p.Country)
+            .HasColumnName("country");
+
+        builder.Property(p => p.PostalCode)
+            .HasColumnName("postal_code");
 
         builder.Property(p => p.Latitude)
             .HasColumnName("latitude")
@@ -40,17 +114,46 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasColumnName("longitude")
             .HasPrecision(10, 7);
 
-        builder.Property(p => p.Type)
-            .HasColumnName("type")
-            .IsRequired();
+        // Pricing
+        builder.Property(p => p.PriceRange)
+            .HasColumnName("price_range");
 
-        builder.Property(p => p.Status)
-            .HasColumnName("status")
-            .IsRequired()
-            .HasDefaultValue("draft");
-
+        // Project Details
         builder.Property(p => p.CompletionDate)
             .HasColumnName("completion_date");
+
+        builder.Property(p => p.TotalUnits)
+            .HasColumnName("total_units");
+
+        builder.Property(p => p.TotalFloors)
+            .HasColumnName("total_floors");
+
+        builder.Property(p => p.TotalLandArea)
+            .HasColumnName("total_land_area");
+
+        builder.Property(p => p.LandAreaUnit)
+            .HasColumnName("land_area_unit");
+
+        builder.Property(p => p.UnitTypesAvailable)
+            .HasColumnName("unit_types_available")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+            );
+
+        // Unit Specifications
+        builder.Property(p => p.BedroomsRange)
+            .HasColumnName("bedrooms_range");
+
+        builder.Property(p => p.BathroomsRange)
+            .HasColumnName("bathrooms_range");
+
+        builder.Property(p => p.AreaRange)
+            .HasColumnName("area_range");
+
+        builder.Property(p => p.FurnishingStatus)
+            .HasColumnName("furnishing_status");
 
         // Descriptions
         builder.Property(p => p.Description)
@@ -59,6 +162,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         builder.Property(p => p.LongDescription)
             .HasColumnName("long_description");
+
+        builder.Property(p => p.KeyHighlights)
+            .HasColumnName("key_highlights")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+            );
 
         // JSON columns for complex types
         builder.Property(p => p.Features)
@@ -88,6 +199,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             )
             .HasDefaultValue(new List<Specification>());
 
+        builder.Property(p => p.NearbyPlaces)
+            .HasColumnName("nearby_places")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<List<NearbyPlace>>(v, (JsonSerializerOptions?)null)
+            );
+
         // Media
         builder.Property(p => p.MainImage)
             .HasColumnName("main_image");
@@ -101,18 +220,16 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             )
             .HasDefaultValue(new List<string>());
 
-        // Summary Fields
-        builder.Property(p => p.BedroomsRange)
-            .HasColumnName("bedrooms_range");
+        builder.Property(p => p.FloorPlans)
+            .HasColumnName("floor_plans")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<List<Document>>(v, (JsonSerializerOptions?)null)
+            );
 
-        builder.Property(p => p.BathroomsRange)
-            .HasColumnName("bathrooms_range");
-
-        builder.Property(p => p.AreaRange)
-            .HasColumnName("area_range");
-
-        builder.Property(p => p.PriceRange)
-            .HasColumnName("price_range");
+        builder.Property(p => p.VideoTourUrl)
+            .HasColumnName("video_tour_url");
 
         // Metadata
         builder.Property(p => p.CreatedAt)
@@ -125,7 +242,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Relationships
+        // Relationships - use backing field for private setter
+        builder.Metadata.FindNavigation(nameof(Property.Units))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(p => p.Units)
             .WithOne(u => u.Property)
             .HasForeignKey(u => u.PropertyId)
@@ -135,5 +255,6 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasIndex(p => p.AgentId);
         builder.HasIndex(p => p.Location);
         builder.HasIndex(p => p.Status);
+        builder.HasIndex(p => p.Mode);
     }
 }

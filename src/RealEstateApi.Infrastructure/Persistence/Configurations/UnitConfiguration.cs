@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RealEstateApi.Domain.Entities;
+using RealEstateApi.Domain.Enums;
 
 namespace RealEstateApi.Infrastructure.Persistence.Configurations;
 
@@ -12,6 +13,9 @@ public class UnitConfiguration : IEntityTypeConfiguration<Unit>
     public void Configure(EntityTypeBuilder<Unit> builder)
     {
         builder.ToTable("unit");
+
+        // Configure EF Core to use field-based access for private setters
+        builder.UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id)
@@ -56,7 +60,28 @@ public class UnitConfiguration : IEntityTypeConfiguration<Unit>
         builder.Property(u => u.Status)
             .HasColumnName("status")
             .IsRequired()
-            .HasDefaultValue("Available");
+            .HasConversion<string>() // Store enum as string in database
+            .HasDefaultValue(UnitStatus.Available);
+
+        // Media & Marketing - Store as JSON
+        builder.Property(u => u.Images)
+            .HasColumnName("images")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.FloorPlans)
+            .HasColumnName("floor_plans")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.Amenities)
+            .HasColumnName("amenities")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(u => u.Description)
+            .HasColumnName("description")
+            .HasColumnType("text");
 
         // Metadata
         builder.Property(u => u.CreatedAt)

@@ -1,0 +1,20 @@
+{
+  "JwtSettings": {
+    "SecretKey": "your-secret-key-here-minimum-32-characters-long-for-HS256",
+    "Issuer": "http://localhost:3000",
+    "Audience": "http://localhost:5000",
+    "ValidateIssuer": true,
+    "ValidateAudience": true,
+    "ValidateLifetime": true,
+    "ValidateIssuerSigningKey": true
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=realestate;Username=postgres;Password=yourpassword"
+  },
+  "Cors": {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://localhost:3000"
+    ]
+  }
+}
