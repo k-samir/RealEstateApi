@@ -55,8 +55,7 @@ public class CreatePropertyDto
     public string? LongDescription { get; set; }
     public List<string>? KeyHighlights { get; set; }
 
-    // Features & Amenities
-    public List<string> Features { get; set; } = new();
+    // Amenities & Specifications
     public List<Amenity> Amenities { get; set; } = new();
     public List<Specification> Specifications { get; set; } = new();
     public List<NearbyPlace>? NearbyPlaces { get; set; }
@@ -121,8 +120,7 @@ public class UpdatePropertyDto
     public string? LongDescription { get; set; }
     public List<string>? KeyHighlights { get; set; }
 
-    // Features & Amenities
-    public List<string>? Features { get; set; }
+    // Amenities
     public List<Amenity>? Amenities { get; set; }
     public List<Specification>? Specifications { get; set; }
     public List<NearbyPlace>? NearbyPlaces { get; set; }
@@ -187,8 +185,7 @@ public class PropertyResponseDto
     public string? LongDescription { get; set; }
     public List<string>? KeyHighlights { get; set; }
 
-    // Features & Amenities
-    public List<string> Features { get; set; } = new();
+    // Amenities & Specifications
     public List<Amenity> Amenities { get; set; } = new();
     public List<Specification> Specifications { get; set; } = new();
     public List<NearbyPlace>? NearbyPlaces { get; set; }

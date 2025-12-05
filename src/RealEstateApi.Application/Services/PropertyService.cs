@@ -112,9 +112,8 @@ public class PropertyService : IPropertyService
             dto.KeyHighlights
         );
 
-        // Update features and amenities
-        property.UpdateFeaturesAndAmenities(
-            dto.Features,
+        // Update amenities and specifications
+        property.UpdateAmenitiesAndSpecifications(
             dto.Amenities,
             dto.Specifications,
             dto.NearbyPlaces
@@ -264,11 +263,10 @@ public class PropertyService : IPropertyService
             );
         }
 
-        // Update features and amenities if provided
-        if (dto.Features != null || dto.Amenities != null || dto.Specifications != null || dto.NearbyPlaces != null)
+        // Update amenities and specifications if provided
+        if (dto.Amenities != null || dto.Specifications != null || dto.NearbyPlaces != null)
         {
-            property.UpdateFeaturesAndAmenities(
-                dto.Features,
+            property.UpdateAmenitiesAndSpecifications(
                 dto.Amenities,
                 dto.Specifications,
                 dto.NearbyPlaces
@@ -482,8 +480,7 @@ public class PropertyService : IPropertyService
             LongDescription = property.LongDescription,
             KeyHighlights = property.KeyHighlights,
 
-            // Features & Amenities
-            Features = property.Features,
+            // Amenities & Specifications
             Amenities = property.Amenities,
             Specifications = property.Specifications,
             NearbyPlaces = property.NearbyPlaces,

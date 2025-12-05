@@ -154,15 +154,6 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             );
 
         // JSON columns for complex types
-        builder.Property(p => p.Features)
-            .HasColumnName("features")
-            .HasColumnType("jsonb")
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-            )
-            .HasDefaultValue(new List<string>());
-
         builder.Property(p => p.Amenities)
             .HasColumnName("amenities")
             .HasColumnType("jsonb")

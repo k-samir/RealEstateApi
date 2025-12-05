@@ -55,8 +55,14 @@ builder.Services.AddSwaggerGen(options =>
 
 // Configure PostgreSQL with EF Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Create NpgsqlDataSourceBuilder to enable dynamic JSON serialization
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableDynamicJson(); // Required for List<string> and other JSON types
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(dataSource));
 
 // Register repositories (Infrastructure - Adapters)
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();

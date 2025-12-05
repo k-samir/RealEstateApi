@@ -58,8 +58,7 @@ public class Property
     public string? LongDescription { get; private set; }
     public List<string>? KeyHighlights { get; private set; }
 
-    // Features & Amenities (JSON arrays)
-    public List<string> Features { get; private set; } = new();
+    // Amenities & Specifications (JSON arrays)
     public List<Amenity> Amenities { get; private set; } = new();
     public List<Specification> Specifications { get; private set; } = new();
     public List<NearbyPlace>? NearbyPlaces { get; private set; }
@@ -222,17 +221,13 @@ public class Property
     }
 
     /// <summary>
-    /// Update property features and amenities
+    /// Update property amenities and specifications
     /// </summary>
-    public void UpdateFeaturesAndAmenities(
-        List<string>? features = null,
+    public void UpdateAmenitiesAndSpecifications(
         List<Amenity>? amenities = null,
         List<Specification>? specifications = null,
         List<NearbyPlace>? nearbyPlaces = null)
     {
-        if (features != null)
-            Features = features;
-
         if (amenities != null)
             Amenities = amenities;
 
