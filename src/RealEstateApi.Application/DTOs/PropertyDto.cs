@@ -12,18 +12,15 @@ public class CreatePropertyDto
     public string? Developer { get; set; }
     public string? Category { get; set; } // Development Project, Land Sale
     public string Type { get; set; } = string.Empty; // Apartment, Villa, Land, etc.
+    public string? Status { get; set; }
     public bool IsPublished { get; set; } = false;
     public bool IsFeatured { get; set; } = false;
 
     // Property Mode
     public string? PropertyMode { get; set; } // "Standalone" or "MultiUnit"
 
-    // Standalone Unit Fields (used when PropertyMode = "Standalone")
-    public int? Bedrooms { get; set; }
-    public int? Bathrooms { get; set; }
-    public decimal? UnitArea { get; set; }
-    public decimal? UnitPrice { get; set; }
-    public string? AreaUnit { get; set; }
+    // Units (all properties have units array)
+    public List<CreateUnitDto>? Units { get; set; }
 
     // Location
     public string Location { get; set; } = string.Empty; // General location
@@ -88,12 +85,8 @@ public class UpdatePropertyDto
     // Property Mode
     public string? PropertyMode { get; set; } // "Standalone" or "MultiUnit"
 
-    // Standalone Unit Fields (used when PropertyMode = "Standalone")
-    public int? Bedrooms { get; set; }
-    public int? Bathrooms { get; set; }
-    public decimal? UnitArea { get; set; }
-    public decimal? UnitPrice { get; set; }
-    public string? AreaUnit { get; set; }
+    // Units (all properties have units array)
+    public List<CreateUnitDto>? Units { get; set; }
 
     // Location
     public string? Location { get; set; }
@@ -160,13 +153,6 @@ public class PropertyResponseDto
 
     // Property Mode
     public string PropertyMode { get; set; } = "Standalone";
-
-    // Standalone Unit Fields (used when PropertyMode = "Standalone")
-    public int? Bedrooms { get; set; }
-    public int? Bathrooms { get; set; }
-    public decimal? UnitArea { get; set; }
-    public decimal? UnitPrice { get; set; }
-    public string? AreaUnit { get; set; }
 
     // Location
     public string Location { get; set; } = string.Empty;

@@ -73,24 +73,11 @@ public class PropertyService : IPropertyService
             dto.IsFeatured
         );
 
-        // Handle PropertyMode and standalone unit details
+        // CHANGED: Handle PropertyMode
         if (!string.IsNullOrEmpty(dto.PropertyMode))
         {
             var mode = Enum.Parse<PropertyMode>(dto.PropertyMode, ignoreCase: true);
             property.SetMode(mode);
-
-            // If Standalone mode and unit details provided, update them
-            if (mode == PropertyMode.Standalone && dto.Bedrooms.HasValue && dto.Bathrooms.HasValue &&
-                dto.UnitArea.HasValue && dto.UnitPrice.HasValue)
-            {
-                property.UpdateStandaloneUnitDetails(
-                    dto.Bedrooms.Value,
-                    dto.Bathrooms.Value,
-                    dto.UnitArea.Value,
-                    dto.UnitPrice.Value,
-                    dto.AreaUnit
-                );
-            }
         }
 
         // Update location
@@ -117,14 +104,7 @@ public class PropertyService : IPropertyService
             dto.UnitTypesAvailable
         );
 
-        // Update unit specifications
-        property.UpdateUnitSpecifications(
-            dto.BedroomsRange,
-            dto.BathroomsRange,
-            dto.AreaRange,
-            dto.FurnishingStatus
-        );
-
+        // REMOVED: UpdateUnitSpecifications - ranges now calculated from units
         // Update descriptions
         property.UpdateDescriptions(
             dto.Description,
@@ -154,7 +134,53 @@ public class PropertyService : IPropertyService
             property.SetPublishStatus(dto.IsPublished);
         }
 
+        // Save property first to get the PropertyId for units
         var created = await _propertyRepository.CreateAsync(property);
+
+        // ADDED: Handle Units array
+        if (dto.Units != null && dto.Units.Any())
+        {
+            // Create units from DTO
+            foreach (var unitDto in dto.Units)
+            {
+                var unit = Unit.Create(
+                    created.Id,
+                    unitDto.UnitNumber,
+                    unitDto.Type,
+                    unitDto.Bedrooms,
+                    unitDto.Bathrooms,
+                    unitDto.Area,
+                    unitDto.Price,
+                    unitDto.Floor,
+                    unitDto.Images,
+                    unitDto.FloorPlans,
+                    unitDto.Amenities,
+                    unitDto.Description
+                );
+                created.AddUnit(unit);
+            }
+        }
+        else if (created.Mode == PropertyMode.Standalone)
+        {
+            // ADDED: If Standalone mode and no units provided, create a default unit
+            var defaultUnit = Unit.Create(
+                created.Id,
+                "Unit 1",
+                "Unit",
+                0, // bedrooms
+                0, // bathrooms
+                0, // area
+                0  // price
+            );
+            created.AddUnit(defaultUnit);
+        }
+
+        // ADDED: Calculate ranges from units after adding them
+        if (created.Units.Any())
+        {
+            created.CalculateRangesFromUnits();
+            await _propertyRepository.UpdateAsync(created);
+        }
 
         return MapToDto(created);
     }
@@ -177,24 +203,7 @@ public class PropertyService : IPropertyService
             property.SetMode(mode);
         }
 
-        // Handle standalone unit details for Standalone mode
-        if (property.Mode == PropertyMode.Standalone &&
-            (dto.Bedrooms.HasValue || dto.Bathrooms.HasValue || dto.UnitArea.HasValue || dto.UnitPrice.HasValue))
-        {
-            property.UpdateStandaloneUnitDetails(
-                dto.Bedrooms ?? property.Bedrooms ?? 0,
-                dto.Bathrooms ?? property.Bathrooms ?? 0,
-                dto.UnitArea ?? property.UnitArea ?? 0,
-                dto.UnitPrice ?? property.UnitPrice ?? 0,
-                dto.AreaUnit ?? property.AreaUnit
-            );
-        }
-
-        // For MultiUnit properties, calculate ranges from units if units exist
-        if (property.Mode == PropertyMode.MultiUnit && property.Units.Any())
-        {
-            property.CalculateRangesFromUnits();
-        }
+        // REMOVED: Standalone unit details handling - now uses units array
 
         // Update basic info if provided
         if (dto.Name != null || dto.Type != null || dto.Description != null || dto.Developer != null || dto.Category != null || dto.IsFeatured.HasValue)
@@ -243,16 +252,7 @@ public class PropertyService : IPropertyService
             );
         }
 
-        // Update unit specifications if provided
-        if (dto.BedroomsRange != null || dto.BathroomsRange != null || dto.AreaRange != null || dto.FurnishingStatus != null)
-        {
-            property.UpdateUnitSpecifications(
-                dto.BedroomsRange,
-                dto.BathroomsRange,
-                dto.AreaRange,
-                dto.FurnishingStatus
-            );
-        }
+        // REMOVED: UpdateUnitSpecifications - ranges now calculated from units automatically
 
         // Update descriptions if provided
         if (dto.Description != null || dto.LongDescription != null || dto.KeyHighlights != null)
@@ -284,6 +284,40 @@ public class PropertyService : IPropertyService
                 dto.FloorPlans,
                 dto.VideoTourUrl
             );
+        }
+
+        // ADDED: Handle Units array update
+        if (dto.Units != null)
+        {
+            // Clear existing units (RemoveUnit handles business rules)
+            var existingUnits = property.Units.ToList();
+            foreach (var existingUnit in existingUnits)
+            {
+                property.RemoveUnit(existingUnit);
+            }
+
+            // Add new units from DTO
+            foreach (var unitDto in dto.Units)
+            {
+                var unit = Unit.Create(
+                    property.Id,
+                    unitDto.UnitNumber,
+                    unitDto.Type,
+                    unitDto.Bedrooms,
+                    unitDto.Bathrooms,
+                    unitDto.Area,
+                    unitDto.Price,
+                    unitDto.Floor,
+                    unitDto.Images,
+                    unitDto.FloorPlans,
+                    unitDto.Amenities,
+                    unitDto.Description
+                );
+                property.AddUnit(unit);
+            }
+
+            // ADDED: Calculate ranges from units after updating them
+            property.CalculateRangesFromUnits();
         }
 
         // Handle status changes through domain methods
@@ -412,12 +446,8 @@ public class PropertyService : IPropertyService
             // Property Mode
             PropertyMode = property.Mode.ToString(),
 
-            // Standalone Unit Fields
-            Bedrooms = property.Bedrooms,
-            Bathrooms = property.Bathrooms,
-            UnitArea = property.UnitArea,
-            UnitPrice = property.UnitPrice,
-            AreaUnit = property.AreaUnit,
+            // REMOVED: Standalone Unit Fields (Bedrooms, Bathrooms, UnitArea, UnitPrice, AreaUnit)
+            // These are now only in the Units array
 
             // Location
             Location = property.Location,
@@ -441,7 +471,7 @@ public class PropertyService : IPropertyService
             LandAreaUnit = property.LandAreaUnit,
             UnitTypesAvailable = property.UnitTypesAvailable,
 
-            // Unit Specifications
+            // Unit Specifications (calculated from units)
             BedroomsRange = property.BedroomsRange,
             BathroomsRange = property.BathroomsRange,
             AreaRange = property.AreaRange,

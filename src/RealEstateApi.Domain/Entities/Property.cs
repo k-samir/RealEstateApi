@@ -25,13 +25,6 @@ public class Property
     // Property Mode
     public PropertyMode Mode { get; private set; } = PropertyMode.Standalone;
 
-    // Standalone Unit Fields (used when Mode = Standalone)
-    public int? Bedrooms { get; private set; }
-    public int? Bathrooms { get; private set; }
-    public decimal? UnitArea { get; private set; }
-    public decimal? UnitPrice { get; private set; }
-    public string? AreaUnit { get; private set; }
-
     // Location
     public string Location { get; private set; } = string.Empty; // General location
     public string? StreetAddress { get; private set; }
@@ -375,17 +368,8 @@ public class Property
     /// </summary>
     public bool CanBePublished()
     {
-        // Mode-specific validation
-        if (Mode == PropertyMode.Standalone)
-        {
-            // Standalone properties need unit details in property fields
-            return Bedrooms.HasValue && Bathrooms.HasValue && UnitArea.HasValue && UnitPrice.HasValue;
-        }
-        else // MultiUnit
-        {
-            // Multi-unit properties need at least one unit
-            return _units.Any();
-        }
+        // All properties must have at least one unit to be published
+        return _units.Any();
     }
 
     /// <summary>
@@ -425,39 +409,6 @@ public class Property
     }
 
     /// <summary>
-    /// Update standalone unit details (for Standalone mode properties)
-    /// </summary>
-    public void UpdateStandaloneUnitDetails(
-        int bedrooms,
-        int bathrooms,
-        decimal area,
-        decimal price,
-        string? areaUnit = null)
-    {
-        if (Mode != PropertyMode.Standalone)
-            throw new DomainException("Can only update standalone unit details for Standalone mode properties");
-
-        if (bedrooms < 0)
-            throw new DomainException("Bedrooms cannot be negative");
-
-        if (bathrooms < 0)
-            throw new DomainException("Bathrooms cannot be negative");
-
-        if (area <= 0)
-            throw new DomainException("Area must be greater than zero");
-
-        if (price < 0)
-            throw new DomainException("Price cannot be negative");
-
-        Bedrooms = bedrooms;
-        Bathrooms = bathrooms;
-        UnitArea = area;
-        UnitPrice = price;
-        AreaUnit = areaUnit;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
     /// Set property mode (allows Standalone to MultiUnit conversion)
     /// </summary>
     public void SetMode(PropertyMode mode)
@@ -466,21 +417,15 @@ public class Property
         if (Mode == PropertyMode.Standalone && mode == PropertyMode.MultiUnit)
         {
             Mode = mode;
-            // Clear standalone unit fields when converting to MultiUnit
-            Bedrooms = null;
-            Bathrooms = null;
-            UnitArea = null;
-            UnitPrice = null;
-            AreaUnit = null;
             UpdatedAt = DateTime.UtcNow;
             return;
         }
 
-        // Don't allow MultiUnit -> Standalone if units exist
+        // Don't allow MultiUnit -> Standalone if more than one unit exists
         if (Mode == PropertyMode.MultiUnit && mode == PropertyMode.Standalone)
         {
-            if (_units.Any())
-                throw new DomainException("Cannot convert to Standalone mode while units exist. Remove all units first.");
+            if (_units.Count > 1)
+                throw new DomainException("Cannot convert to Standalone mode with multiple units. Remove all but one unit first.");
 
             Mode = mode;
             UpdatedAt = DateTime.UtcNow;
@@ -495,13 +440,11 @@ public class Property
     }
 
     /// <summary>
-    /// Calculate and update range fields from actual units (for MultiUnit properties)
+    /// Calculate and update range fields from actual units
+    /// For Standalone: shows single value, For MultiUnit: shows range
     /// </summary>
     public void CalculateRangesFromUnits()
     {
-        if (Mode != PropertyMode.MultiUnit)
-            throw new DomainException("Can only calculate ranges for MultiUnit properties");
-
         if (!_units.Any())
         {
             // Clear ranges if no units
