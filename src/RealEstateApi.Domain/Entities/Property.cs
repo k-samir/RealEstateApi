@@ -301,16 +301,15 @@ public class Property
     }
 
     /// <summary>
-    /// Publish the property
+    /// Publish the property (make visible online)
     /// Business rule: Property must have required fields to be published
     /// </summary>
     public void Publish()
     {
         if (!CanBePublished())
             throw new DomainException(
-                "Property cannot be published. Required: name, description, main image, and at least one unit.");
+                "Property cannot be published. Required: name, description, and mode-specific requirements.");
 
-        Status = PropertyStatus.Published;
         IsPublished = true;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -325,34 +324,20 @@ public class Property
     }
 
     /// <summary>
-    /// Set publish status directly
+    /// Set publish status directly (controls online visibility)
     /// </summary>
     public void SetPublishStatus(bool isPublished)
     {
         IsPublished = isPublished;
-        
-        // Sync Status with IsPublished for Draft/Published transitions
-        if (isPublished && Status == PropertyStatus.Draft)
-        {
-            Status = PropertyStatus.Published;
-        }
-        else if (!isPublished && Status == PropertyStatus.Published)
-        {
-            Status = PropertyStatus.Draft;
-        }
-
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Mark property as reserved
+    /// Update the business status of the property
     /// </summary>
-    public void Reserve()
+    public void UpdateStatus(PropertyStatus newStatus)
     {
-        if (Status != PropertyStatus.Published)
-            throw new DomainException("Only published properties can be reserved");
-
-        Status = PropertyStatus.Reserved;
+        Status = newStatus;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -361,22 +346,26 @@ public class Property
     /// </summary>
     public void MarkAsSold()
     {
-        if (Status != PropertyStatus.Published && Status != PropertyStatus.Reserved)
-            throw new DomainException("Only published or reserved properties can be marked as sold");
-
         Status = PropertyStatus.Sold;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Revert to draft status
+    /// Mark property as rented
     /// </summary>
-    public void RevertToDraft()
+    public void MarkAsRented()
     {
-        if (Status == PropertyStatus.Sold)
-            throw new DomainException("Sold properties cannot be reverted to draft");
+        Status = PropertyStatus.Rented;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
-        Status = PropertyStatus.Draft;
+    /// <summary>
+    /// Archive the property
+    /// </summary>
+    public void Archive()
+    {
+        Status = PropertyStatus.Archived;
+        IsPublished = false; // Archived properties should not be visible online
         UpdatedAt = DateTime.UtcNow;
     }
 

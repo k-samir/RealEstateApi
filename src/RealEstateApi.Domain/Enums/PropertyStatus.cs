@@ -1,13 +1,16 @@
 namespace RealEstateApi.Domain.Enums;
 
 /// <summary>
-/// Property status enumeration
-/// Prevents invalid status values
+/// Property status enumeration - represents business lifecycle
+/// Separate from IsPublished which controls online visibility
 /// </summary>
 public enum PropertyStatus
 {
     Draft,
-    Published,
-    Reserved,
-    Sold
+    Active,
+    Sold,
+    Rented,
+    UnderConstruction,
+    Completed,
+    Archived
 }

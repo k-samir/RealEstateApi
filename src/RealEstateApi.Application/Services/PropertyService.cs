@@ -287,9 +287,22 @@ public class PropertyService : IPropertyService
         }
 
         // Handle status changes through domain methods
+        // Only update if status has actually changed
         if (dto.Status != null)
         {
-            UpdatePropertyStatus(property, dto.Status);
+            // Normalize the incoming status for comparison
+            var normalizedIncomingStatus = dto.Status switch
+            {
+                "Published" => "Active",
+                "Reserved" => "Active",
+                _ => dto.Status
+            };
+
+            // Only update if different from current status
+            if (property.Status.ToString() != normalizedIncomingStatus)
+            {
+                UpdatePropertyStatus(property, dto.Status);
+            }
         }
 
         // Handle publish status changes
@@ -348,21 +361,32 @@ public class PropertyService : IPropertyService
 
     private static void UpdatePropertyStatus(Property property, string status)
     {
-        var newStatus = Enum.Parse<PropertyStatus>(status, ignoreCase: true);
+        // Handle backward compatibility with old status values
+        var normalizedStatus = status switch
+        {
+            "Published" => "Active",  // Map old Published to Active
+            "Reserved" => "Active",   // Map old Reserved to Active
+            _ => status
+        };
+
+        var newStatus = Enum.Parse<PropertyStatus>(normalizedStatus, ignoreCase: true);
 
         switch (newStatus)
         {
-            case PropertyStatus.Published:
-                property.Publish();
-                break;
-            case PropertyStatus.Reserved:
-                property.Reserve();
+            case PropertyStatus.Draft:
+            case PropertyStatus.Active:
+            case PropertyStatus.UnderConstruction:
+            case PropertyStatus.Completed:
+                property.UpdateStatus(newStatus);
                 break;
             case PropertyStatus.Sold:
                 property.MarkAsSold();
                 break;
-            case PropertyStatus.Draft:
-                property.RevertToDraft();
+            case PropertyStatus.Rented:
+                property.MarkAsRented();
+                break;
+            case PropertyStatus.Archived:
+                property.Archive();
                 break;
             default:
                 throw new ArgumentException($"Invalid status: {status}");
