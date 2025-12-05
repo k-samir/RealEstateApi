@@ -8,7 +8,9 @@ using RealEstateApi.Infrastructure.Persistence.Repositories;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using RealEstateApi.Infrastructure.Security;
+
 using System.Text;
+using RealEstateApi.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,13 +66,19 @@ var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(dataSource));
 
-// Register repositories (Infrastructure - Adapters)
-builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
-builder.Services.AddScoped<IUnitRepository, UnitRepository>();
-
 // Register application services (Use Cases)
 builder.Services.AddScoped<IPropertyService, RealEstateApi.Application.Services.PropertyService>();
 builder.Services.AddScoped<IUnitService, RealEstateApi.Application.Services.UnitService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+
+// Register repositories (Infrastructure - Adapters)
+builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+
 
 // Configure JWT Authentication from Better Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

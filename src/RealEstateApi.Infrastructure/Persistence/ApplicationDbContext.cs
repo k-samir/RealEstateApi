@@ -17,6 +17,11 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<Unit> Units => Set<Unit>();
+    public DbSet<Client> Clients => Set<Client>();
+
+    public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

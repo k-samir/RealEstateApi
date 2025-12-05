@@ -169,6 +169,18 @@ public class Unit
     }
 
     /// <summary>
+    /// Mark unit as rented
+    /// </summary>
+    public void MarkAsRented()
+    {
+        if (Status == UnitStatus.Sold)
+            throw new DomainException("Sold units cannot be rented");
+
+        Status = UnitStatus.Rented;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// Make unit available again
     /// </summary>
     public void MakeAvailable()

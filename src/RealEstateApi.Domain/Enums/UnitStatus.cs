@@ -7,5 +7,6 @@ public enum UnitStatus
 {
     Available,
     Reserved,
-    Sold
+    Sold,
+    Rented
 }

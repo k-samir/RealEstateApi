@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RealEstateApi.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using RealEstateApi.Infrastructure.Persistence;
 namespace RealEstateApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251205203925_AddClientsAndTransactions")]
+    partial class AddClientsAndTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,7 +63,7 @@ namespace RealEstateApi.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("audit_logs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Client", b =>
@@ -107,7 +110,7 @@ namespace RealEstateApi.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("clients", (string)null);
+                    b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Payment", b =>
@@ -139,7 +142,7 @@ namespace RealEstateApi.Infrastructure.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Property", b =>
@@ -366,6 +369,10 @@ namespace RealEstateApi.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("ClientId")
                         .HasColumnType("integer");
 
@@ -375,19 +382,11 @@ namespace RealEstateApi.Infrastructure.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("DeclaredAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("UndeclaredAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("UnitId")
                         .IsRequired()
@@ -402,7 +401,7 @@ namespace RealEstateApi.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Unit", b =>
@@ -492,6 +491,41 @@ namespace RealEstateApi.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("unit", (string)null);
+                });
+
+            modelBuilder.Entity("RealEstateApi.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Payment", b =>
