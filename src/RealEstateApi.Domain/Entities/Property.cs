@@ -77,6 +77,11 @@ public class Property
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
+    // Soft Delete
+    public DateTime? DeletedAt { get; private set; }
+    public string? DeletedBy { get; private set; }
+    public bool IsArchived => DeletedAt.HasValue;
+
     // Private constructor - use factory method
     private Property() { }
 
@@ -471,6 +476,36 @@ public class Property
         var maxPrice = _units.Max(u => u.Price);
         PriceRange = minPrice == maxPrice ? $"{minPrice:F0}" : $"{minPrice:F0}-{maxPrice:F0}";
 
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Archive (soft delete) the property
+    /// Properties with transactions can only be archived by superadmin (force delete)
+    /// </summary>
+    public void Archive(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new DomainException("User ID is required to archive property");
+
+        if (IsArchived)
+            throw new DomainException("Property is already archived");
+
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = userId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Restore an archived property
+    /// </summary>
+    public void Restore()
+    {
+        if (!IsArchived)
+            throw new DomainException("Property is not archived");
+
+        DeletedAt = null;
+        DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
 
