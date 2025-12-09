@@ -49,7 +49,7 @@ public class TransactionService : ITransactionService
             throw new DomainException($"Unit {unit.UnitNumber} is not available (Status: {unit.Status})");
         }
 
-        var transaction = Transaction.Create(dto.ClientId, dto.UnitId, dto.Type, dto.DeclaredAmount, dto.UndeclaredAmount, dto.Date);
+        var transaction = Transaction.Create(dto.AgentId, dto.ClientId, dto.UnitId, dto.Type, dto.DeclaredAmount, dto.UndeclaredAmount, dto.Date);
         await _repository.CreateAsync(transaction);
 
         if (dto.Type == Domain.Enums.TransactionType.Sale)
@@ -92,6 +92,7 @@ public class TransactionService : ITransactionService
     {
         return new TransactionDto(
             t.Id,
+            t.AgentId,
             t.ClientId,
             t.Client?.FullName ?? "Unknown",
             t.UnitId,

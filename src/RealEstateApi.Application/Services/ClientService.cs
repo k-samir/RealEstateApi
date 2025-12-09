@@ -20,6 +20,7 @@ public class ClientService : IClientService
         
         var dtos = items.Select(c => new ClientDto(
             c.Id,
+            c.AgentId,
             c.FullName,
             c.Phone,
             c.Email,
@@ -39,6 +40,7 @@ public class ClientService : IClientService
 
         return new ClientDto(
             c.Id,
+            c.AgentId,
             c.FullName,
             c.Phone,
             c.Email,
@@ -51,11 +53,12 @@ public class ClientService : IClientService
 
     public async Task<ClientDto> CreateAsync(CreateClientDto dto)
     {
-        var client = Client.Create(dto.FullName, dto.Phone, dto.Email, dto.NationalId, dto.Address, dto.Notes);
+        var client = Client.Create(dto.AgentId, dto.FullName, dto.Phone, dto.Email, dto.NationalId, dto.Address ?? string.Empty, dto.Notes);
         await _repository.CreateAsync(client);
-        
+
         return new ClientDto(
             client.Id,
+            client.AgentId,
             client.FullName,
             client.Phone,
             client.Email,
