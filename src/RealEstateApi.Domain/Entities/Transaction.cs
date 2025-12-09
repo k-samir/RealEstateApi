@@ -6,14 +6,15 @@ namespace RealEstateApi.Domain.Entities;
 public class Transaction
 {
     public int Id { get; private set; }
+    public string AgentId { get; private set; } = string.Empty; // Agent who owns this transaction
     public int ClientId { get; private set; }
     public Client Client { get; private set; } = null!;
-    
+
     public string UnitId { get; private set; } = string.Empty;
     public Unit Unit { get; private set; } = null!;
 
     public TransactionType Type { get; private set; }
-    public decimal DeclaredAmount { get; private set; } 
+    public decimal DeclaredAmount { get; private set; }
     public decimal UndeclaredAmount { get; private set; }
     public DateTime Date { get; private set; }
     public TransactionStatus Status { get; private set; }
@@ -29,8 +30,9 @@ public class Transaction
 
     private Transaction() { }
 
-    public static Transaction Create(int clientId, string unitId, TransactionType type, decimal declaredAmount, decimal undeclaredAmount, DateTime date)
+    public static Transaction Create(string agentId, int clientId, string unitId, TransactionType type, decimal declaredAmount, decimal undeclaredAmount, DateTime date)
     {
+        if (string.IsNullOrWhiteSpace(agentId)) throw new DomainException("Agent ID is required");
         if (declaredAmount <= 0) throw new DomainException("Declared amount must be positive");
         if (undeclaredAmount <= 0) throw new DomainException("Undeclared amount must be positive");
         if (string.IsNullOrWhiteSpace(unitId)) throw new DomainException("Unit is required");
@@ -38,6 +40,7 @@ public class Transaction
         var now = DateTime.UtcNow;
         return new Transaction
         {
+            AgentId = agentId,
             ClientId = clientId,
             UnitId = unitId,
             Type = type,
