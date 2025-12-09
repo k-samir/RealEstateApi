@@ -288,8 +288,8 @@ public class AuthorizationService : IAuthorizationService
         // If no permissions exist, create default permissions for the user
         if (permissions == null)
         {
-            // Default to junior agent
-            permissions = UserPermissions.Create(userId, "user", "junior");
+            // Create with default permissions
+            permissions = UserPermissions.Create(userId, "user");
             await _permissionsRepository.CreateAsync(permissions);
         }
 

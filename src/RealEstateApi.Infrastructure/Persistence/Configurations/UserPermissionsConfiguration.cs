@@ -21,10 +21,6 @@ public class UserPermissionsConfiguration : IEntityTypeConfiguration<UserPermiss
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(u => u.AgentTier)
-            .HasColumnName("agent_tier")
-            .HasMaxLength(50);
-
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
