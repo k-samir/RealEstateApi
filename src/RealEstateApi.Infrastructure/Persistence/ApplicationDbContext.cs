@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<UserPermissions> UserPermissions => Set<UserPermissions>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

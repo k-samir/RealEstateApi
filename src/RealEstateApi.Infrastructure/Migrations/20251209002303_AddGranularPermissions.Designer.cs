@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RealEstateApi.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using RealEstateApi.Infrastructure.Persistence;
 namespace RealEstateApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251209002303_AddGranularPermissions")]
+    partial class AddGranularPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -508,36 +511,6 @@ namespace RealEstateApi.Infrastructure.Migrations
                     b.ToTable("unit", (string)null);
                 });
 
-            modelBuilder.Entity("RealEstateApi.Domain.Entities.UserPermissions", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<string>("AgentTier")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("agent_tier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("role");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("user_permissions", (string)null);
-                });
-
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("RealEstateApi.Domain.Entities.Transaction", null)
@@ -575,120 +548,6 @@ namespace RealEstateApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
-                });
-
-            modelBuilder.Entity("RealEstateApi.Domain.Entities.UserPermissions", b =>
-                {
-                    b.OwnsOne("RealEstateApi.Domain.Entities.ClientPermissions", "Clients", b1 =>
-                        {
-                            b1.Property<string>("UserPermissionsUserId")
-                                .HasColumnType("text");
-
-                            b1.Property<bool>("Create")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("DeleteOwn")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditOwn")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewOwn")
-                                .HasColumnType("boolean");
-
-                            b1.HasKey("UserPermissionsUserId");
-
-                            b1.ToTable("user_permissions");
-
-                            b1.ToJson("clients_permissions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserPermissionsUserId");
-                        });
-
-                    b.OwnsOne("RealEstateApi.Domain.Entities.PropertyPermissions", "Properties", b1 =>
-                        {
-                            b1.Property<string>("UserPermissionsUserId")
-                                .HasColumnType("text");
-
-                            b1.Property<bool>("Create")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("DeleteOwn")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditOwn")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("Publish")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewOwn")
-                                .HasColumnType("boolean");
-
-                            b1.HasKey("UserPermissionsUserId");
-
-                            b1.ToTable("user_permissions");
-
-                            b1.ToJson("properties_permissions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserPermissionsUserId");
-                        });
-
-                    b.OwnsOne("RealEstateApi.Domain.Entities.TransactionPermissions", "Transactions", b1 =>
-                        {
-                            b1.Property<string>("UserPermissionsUserId")
-                                .HasColumnType("text");
-
-                            b1.Property<bool>("AddPayment")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("Create")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("EditOwn")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewAll")
-                                .HasColumnType("boolean");
-
-                            b1.Property<bool>("ViewOwn")
-                                .HasColumnType("boolean");
-
-                            b1.HasKey("UserPermissionsUserId");
-
-                            b1.ToTable("user_permissions");
-
-                            b1.ToJson("transactions_permissions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserPermissionsUserId");
-                        });
-
-                    b.Navigation("Clients")
-                        .IsRequired();
-
-                    b.Navigation("Properties")
-                        .IsRequired();
-
-                    b.Navigation("Transactions")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("RealEstateApi.Domain.Entities.Property", b =>
