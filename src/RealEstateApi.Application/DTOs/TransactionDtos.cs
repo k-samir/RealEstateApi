@@ -4,6 +4,7 @@ namespace RealEstateApi.Application.DTOs;
 
 public record TransactionDto(
     int Id,
+    string AgentId,
     int ClientId,
     string ClientName,
     string UnitId,
@@ -20,6 +21,7 @@ public record TransactionDto(
 );
 
 public record CreateTransactionDto(
+    string AgentId,
     int ClientId,
     string UnitId,
     TransactionType Type,

@@ -2,6 +2,7 @@ namespace RealEstateApi.Application.DTOs;
 
 public record ClientDto(
     int Id,
+    string AgentId,
     string FullName,
     string Phone,
     string Email,
@@ -12,6 +13,7 @@ public record ClientDto(
 );
 
 public record CreateClientDto(
+    string AgentId,
     string FullName,
     string Phone,
     string Email,

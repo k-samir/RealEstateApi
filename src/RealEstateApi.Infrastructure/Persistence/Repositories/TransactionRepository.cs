@@ -59,9 +59,15 @@ public class TransactionRepository : ITransactionRepository
     public async Task<bool> HasActiveTransactionForUnitAsync(string unitId, CancellationToken cancellationToken = default)
     {
         return await _context.Transactions
-            .AnyAsync(t => t.UnitId == unitId && 
-                          (t.Status == TransactionStatus.Pending || t.Status == TransactionStatus.Completed), 
+            .AnyAsync(t => t.UnitId == unitId &&
+                          (t.Status == TransactionStatus.Pending || t.Status == TransactionStatus.Completed),
                           cancellationToken);
+    }
+
+    public async Task<bool> HasTransactionsForUnitAsync(string unitId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Transactions
+            .AnyAsync(t => t.UnitId == unitId, cancellationToken);
     }
 
     public async Task<List<Transaction>> GetByClientIdAsync(int clientId, CancellationToken cancellationToken = default)
