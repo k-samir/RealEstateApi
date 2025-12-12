@@ -95,7 +95,9 @@ public class PropertyService : IPropertyService
 
         // Update project details
         property.UpdateProjectDetails(
-            dto.PriceRange,
+            dto.MinPrice,
+            dto.MaxPrice,
+            dto.Currency,
             dto.CompletionDate,
             dto.TotalUnits,
             dto.TotalFloors,
@@ -236,12 +238,15 @@ public class PropertyService : IPropertyService
         }
 
         // Update project details if provided
-        if (dto.PriceRange != null || dto.CompletionDate != null || dto.TotalUnits.HasValue ||
+        if (dto.MinPrice.HasValue || dto.MaxPrice.HasValue || dto.Currency != null ||
+            dto.CompletionDate != null || dto.TotalUnits.HasValue ||
             dto.TotalFloors.HasValue || dto.TotalLandArea.HasValue || dto.LandAreaUnit != null ||
             dto.UnitTypesAvailable != null)
         {
             property.UpdateProjectDetails(
-                dto.PriceRange,
+                dto.MinPrice,
+                dto.MaxPrice,
+                dto.Currency,
                 dto.CompletionDate,
                 dto.TotalUnits,
                 dto.TotalFloors,
@@ -459,7 +464,10 @@ public class PropertyService : IPropertyService
             Longitude = property.Longitude,
 
             // Pricing
-            PriceRange = property.PriceRange,
+            MinPrice = property.MinPrice,
+            MaxPrice = property.MaxPrice,
+            Currency = property.Currency,
+            PriceRange = property.PriceRange, // Deprecated but kept for compatibility
 
             // Project Details
             CompletionDate = property.CompletionDate,

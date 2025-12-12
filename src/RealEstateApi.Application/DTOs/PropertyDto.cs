@@ -34,6 +34,11 @@ public class CreatePropertyDto
     public decimal? Longitude { get; set; }
 
     // Pricing
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public string Currency { get; set; } = "MAD";
+
+    [Obsolete("Use MinPrice/MaxPrice instead")]
     public string? PriceRange { get; set; }
 
     // Project Details
@@ -99,6 +104,11 @@ public class UpdatePropertyDto
     public decimal? Longitude { get; set; }
 
     // Pricing
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public string Currency { get; set; } = "MAD";
+
+    [Obsolete("Use MinPrice/MaxPrice instead")]
     public string? PriceRange { get; set; }
 
     // Project Details
@@ -164,6 +174,11 @@ public class PropertyResponseDto
     public decimal? Longitude { get; set; }
 
     // Pricing
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public string Currency { get; set; } = "MAD";
+
+    [Obsolete("Use MinPrice/MaxPrice instead")]
     public string? PriceRange { get; set; }
 
     // Project Details
