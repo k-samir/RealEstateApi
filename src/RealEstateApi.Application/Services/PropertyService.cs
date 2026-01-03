@@ -525,4 +525,23 @@ public class PropertyService : IPropertyService
             UpdatedAt = property.UpdatedAt
         };
     }
+
+    /// <summary>
+    /// Get unique cities from all published properties
+    /// Efficient query that only fetches distinct city values
+    /// </summary>
+    public async Task<IEnumerable<string>> GetUniqueCitiesAsync()
+    {
+        var cities = await _propertyRepository.GetUniqueCitiesAsync();
+        return cities.Where(c => !string.IsNullOrWhiteSpace(c)).OrderBy(c => c);
+    }
+
+    /// <summary>
+    /// Get cities with their associated areas from published properties
+    /// Returns both cities list and city-to-areas mapping
+    /// </summary>
+    public async Task<CitiesWithAreasDto> GetCitiesWithAreasAsync()
+    {
+        return await _propertyRepository.GetCitiesWithAreasAsync();
+    }
 }

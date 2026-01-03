@@ -31,9 +31,16 @@ public class PropertyRepository : IPropertyRepository
         // Apply filters if provided
         if (filter != null)
         {
+            if (!string.IsNullOrWhiteSpace(filter.City))
+            {
+                // Filter by City
+                query = query.Where(p => p.City != null && p.City.Contains(filter.City));
+            }
+
             if (!string.IsNullOrWhiteSpace(filter.Location))
             {
-                query = query.Where(p => p.Location.Contains(filter.Location));
+                // Filter by Location (neighborhood)
+                query = query.Where(p => p.Location != null && p.Location.Contains(filter.Location));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Type))
@@ -246,5 +253,59 @@ public class PropertyRepository : IPropertyRepository
 
         // If we can't parse it, include it (don't filter out)
         return true;
+    }
+
+    /// <summary>
+    /// Get distinct cities from all published properties
+    /// Efficient query using DISTINCT to only fetch unique city values
+    /// </summary>
+    public async Task<IEnumerable<string>> GetUniqueCitiesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Properties
+            .Where(p => p.DeletedAt == null && p.IsPublished)
+            .Where(p => p.City != null && p.City != string.Empty)
+            .Select(p => p.City!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Get cities with their associated areas from published properties
+    /// Returns both a list of cities and a mapping of city to areas
+    /// </summary>
+    public async Task<CitiesWithAreasDto> GetCitiesWithAreasAsync(CancellationToken cancellationToken = default)
+    {
+        // Get all published properties with city and location
+        var propertiesData = await _context.Properties
+            .Where(p => p.DeletedAt == null && p.IsPublished)
+            .Where(p => p.City != null && p.City != string.Empty)
+            .Select(p => new { p.City, p.Location })
+            .ToListAsync(cancellationToken);
+
+        // Get unique cities
+        var cities = propertiesData
+            .Select(p => p.City!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        // Build city to areas mapping
+        var cityAreaMapping = propertiesData
+            .Where(p => !string.IsNullOrWhiteSpace(p.Location) && p.Location != p.City)
+            .GroupBy(p => p.City!)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(p => p.Location!)
+                     .Distinct()
+                     .OrderBy(a => a)
+                     .ToList()
+            );
+
+        return new CitiesWithAreasDto
+        {
+            Cities = cities,
+            CityAreaMapping = cityAreaMapping
+        };
     }
 }
