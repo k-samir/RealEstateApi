@@ -34,6 +34,7 @@ public class PropertiesController : ControllerBase
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<PagedPropertiesResponse>> GetProperties(
+        [FromQuery] string? city = null,
         [FromQuery] string? location = null,
         [FromQuery] string? type = null,
         [FromQuery] string? status = "published",
@@ -48,6 +49,7 @@ public class PropertiesController : ControllerBase
         {
             var filter = new PropertyFilter
             {
+                City = city,
                 Location = location,
                 Type = type,
                 Status = status,
@@ -249,5 +251,25 @@ public class PropertiesController : ControllerBase
             _logger.LogError(ex, "Error publishing property {PropertyId}", id);
             return StatusCode(500, new { message = "An error occurred while publishing the property" });
         }
-    } 
+    }
+
+    /// <summary>
+    /// Get unique cities with their associated areas from all published properties
+    /// Returns an object with cities array and cityAreaMapping object
+    /// </summary>
+    [HttpGet("cities")]
+    [AllowAnonymous]
+    public async Task<ActionResult<CitiesWithAreasDto>> GetCities()
+    {
+        try
+        {
+            var citiesWithAreas = await _propertyService.GetCitiesWithAreasAsync();
+            return Ok(citiesWithAreas);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching cities with areas");
+            return StatusCode(500, new { message = "An error occurred while fetching cities" });
+        }
+    }
 }

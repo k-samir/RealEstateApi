@@ -14,4 +14,6 @@ public interface IPropertyService
     Task<PropertyResponseDto> UpdatePropertyAsync(int id, UpdatePropertyDto dto, string userId, string? userRole);
     Task DeletePropertyAsync(int id, string userId, string? userRole);
     Task<PropertyResponseDto> PublishPropertyAsync(int id, string userId);
+    Task<IEnumerable<string>> GetUniqueCitiesAsync();
+    Task<CitiesWithAreasDto> GetCitiesWithAreasAsync();
 }

@@ -20,6 +20,12 @@ public interface IPropertyRepository
 
     // Check ownership (for authorization)
     Task<bool> IsOwnerAsync(int propertyId, string agentId, CancellationToken cancellationToken = default);
+
+    // Get distinct cities
+    Task<IEnumerable<string>> GetUniqueCitiesAsync(CancellationToken cancellationToken = default);
+
+    // Get cities with their associated areas
+    Task<CitiesWithAreasDto> GetCitiesWithAreasAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -27,7 +33,8 @@ public interface IPropertyRepository
 /// </summary>
 public class PropertyFilter
 {
-    public string? Location { get; set; }
+    public string? City { get; set; }
+    public string? Location { get; set; }  // Neighborhood filter
     public string? Type { get; set; }
     public string? Status { get; set; }
     public int? MinBedrooms { get; set; }
@@ -36,4 +43,13 @@ public class PropertyFilter
     public string? SearchQuery { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
+}
+
+/// <summary>
+/// DTO for cities with their associated areas
+/// </summary>
+public class CitiesWithAreasDto
+{
+    public List<string> Cities { get; set; } = new();
+    public Dictionary<string, List<string>> CityAreaMapping { get; set; } = new();
 }

@@ -37,6 +37,11 @@ public class Property
     public decimal? Longitude { get; private set; }
 
     // Pricing
+    public decimal? MinPrice { get; private set; }
+    public decimal? MaxPrice { get; private set; }
+    public string Currency { get; private set; } = "MAD"; // Default currency for Morocco
+
+    [Obsolete("Use MinPrice/MaxPrice instead. Kept for backward compatibility.")]
     public string? PriceRange { get; private set; }
 
     // Project Details
@@ -191,7 +196,9 @@ public class Property
     /// Update project details
     /// </summary>
     public void UpdateProjectDetails(
-        string? priceRange = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        string? currency = null,
         string? completionDate = null,
         int? totalUnits = null,
         int? totalFloors = null,
@@ -199,7 +206,12 @@ public class Property
         string? landAreaUnit = null,
         List<string>? unitTypesAvailable = null)
     {
-        PriceRange = priceRange;
+        MinPrice = minPrice;
+        MaxPrice = maxPrice;
+
+        if (currency != null)
+            Currency = currency;
+
         CompletionDate = completionDate;
         TotalUnits = totalUnits;
         TotalFloors = totalFloors;
@@ -451,7 +463,9 @@ public class Property
             BedroomsRange = null;
             BathroomsRange = null;
             AreaRange = null;
-            PriceRange = null;
+            MinPrice = null;
+            MaxPrice = null;
+            PriceRange = null; // Deprecated field
             UpdatedAt = DateTime.UtcNow;
             return;
         }
@@ -471,10 +485,16 @@ public class Property
         var maxArea = _units.Max(u => u.Area);
         AreaRange = minArea == maxArea ? $"{minArea:F0}" : $"{minArea:F0}-{maxArea:F0}";
 
-        // Calculate price range
-        var minPrice = _units.Min(u => u.Price);
-        var maxPrice = _units.Max(u => u.Price);
-        PriceRange = minPrice == maxPrice ? $"{minPrice:F0}" : $"{minPrice:F0}-{maxPrice:F0}";
+        // Calculate price range (new numeric fields)
+        var calculatedMinPrice = _units.Min(u => u.Price);
+        var calculatedMaxPrice = _units.Max(u => u.Price);
+        MinPrice = calculatedMinPrice;
+        MaxPrice = calculatedMaxPrice;
+
+        // Keep deprecated PriceRange for backward compatibility
+        PriceRange = calculatedMinPrice == calculatedMaxPrice
+            ? $"{calculatedMinPrice:F0}"
+            : $"{calculatedMinPrice:F0}-{calculatedMaxPrice:F0}";
 
         UpdatedAt = DateTime.UtcNow;
     }
